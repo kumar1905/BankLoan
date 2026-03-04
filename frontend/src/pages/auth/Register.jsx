@@ -14,11 +14,15 @@ export default function Register() {
             await api.post('/api/auth/register', formData);
             navigate('/login');
         } catch (err) {
+            let msg = 'Failed to register';
             if (err.response?.data) {
-                setError(JSON.stringify(err.response.data));
-            } else {
-                setError('Failed to register');
+                const data = err.response.data;
+                if (data.message) msg = data.message;
+                else if (data.error) msg = data.error;
+                else if (data.errors) msg = Object.values(data.errors).join('; ');
+                else msg = JSON.stringify(data);
             }
+            setError(msg);
         }
     };
 

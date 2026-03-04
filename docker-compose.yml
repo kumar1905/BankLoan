@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+
+# ── Spring Boot Backend ─────────────────────────
+
+backend:
+build:
+context: ./backend
+dockerfile: Dockerfile
+container_name: loan-backend
+restart: always
+ports:
+- "8081:8081"
+
+```
+environment:
+  # AWS RDS MySQL connection
+  SPRING_DATASOURCE_URL: jdbc:mysql://loan-db-instance.c4ouciqypjlx.us-east-1.rds.amazonaws.com:3306/loan_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+  SPRING_DATASOURCE_USERNAME: admin
+  SPRING_DATASOURCE_PASSWORD: "Kvenkat$1905"
+
+  # Hibernate / JPA
+  SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  SPRING_JPA_SHOW_SQL: "false"
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+
+  # JWT
+  JWT_SECRET: loan-secret-key
+  JWT_EXPIRATION: 86400000
+
+  # File upload configuration
+  SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 5MB
+  SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 5MB
+  FILE_UPLOAD_DIR: /app/uploads
+
+volumes:
+  - loan_uploads:/app/uploads
+
+networks:
+  - loan-network
+```
+
+# ── React Frontend (served via Nginx) ───────────
+
+frontend:
+build:
+context: ./frontend
+dockerfile: Dockerfile
+container_name: loan-frontend
+restart: always
+ports:
+- "80:80"
+depends_on:
+- backend
+
+```
+networks:
+  - loan-network
+```
+
+# ── Named Volume for file uploads ─────────────────
+
+volumes:
+loan_uploads:
+
+# ── Shared Docker Network ─────────────────────────
+
+networks:
+loan-network:
+driver: bridge
